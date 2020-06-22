@@ -22,7 +22,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -a domain_exporter.go
 FROM scratch
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/domain_exporter /
-COPY searches /searches/
 EXPOSE 10550
 
 # Run the web service on container startup.
