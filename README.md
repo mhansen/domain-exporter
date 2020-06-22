@@ -40,3 +40,8 @@ scrape_configs:
       - targets:
         - 'localhost:10550'
 ```
+
+## Caveats
+
+* Domain API will only return a max of 1000 results per search. If you want
+  more than that, consider splitting your search into multiple JSON files.
