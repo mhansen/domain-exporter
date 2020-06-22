@@ -111,7 +111,9 @@ func (dc domainClient) SearchResidential(rsr ResidentialSearchRequest) ([]Search
 func (kc domainCollector) Collect(ch chan<- prometheus.Metric) {
 	matches, err := filepath.Glob("searches/*.json")
 	if err != nil {
-		panic(err)
+		log.Printf("failed to glob for json: %v\n", err)
+		// No way to effectively return errors from Collect.
+		return
 	}
 
 	listingCount := prometheus.NewGaugeVec(
@@ -124,14 +126,18 @@ func (kc domainCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, m := range matches {
 		f, err := os.Open(m)
 		if err != nil {
-			panic(err)
+			log.Printf("couldn't open search json: %v\n", err)
+			// No need to quit, just try the next one
+			continue
 		}
 		var rsr ResidentialSearchRequest
 		json.NewDecoder(f).Decode(&rsr)
 
 		listings, err := kc.dc.SearchResidential(rsr)
 		if err != nil {
-			panic(err)
+			log.Printf("error searching domain for %+v: %v\n", rsr, err)
+			// No need to quit, just try the next one.
+			continue
 		}
 
 		for _, l := range listings {
