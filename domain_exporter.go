@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,6 +19,11 @@ import (
 var (
 	addr   = flag.String("listen", ":10550", "Address to listen on")
 	apiKey = flag.String("api_key", "", "API key")
+	index  = template.Must(template.New("index").Parse(
+		`<!doctype html>
+<title>Domain Exporter</title>
+<h1>Domain Exporter</h1>
+<a href="/metrics">Metrics</a>`))
 )
 
 func main() {
@@ -36,6 +42,13 @@ func main() {
 	)
 
 	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		err := index.Execute(w, nil)
+		if err != nil {
+			log.Println(err)
+		}
+	})
 	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal(err)
 	}
