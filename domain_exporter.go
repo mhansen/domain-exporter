@@ -9,8 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -43,14 +41,14 @@ func main() {
 		log.Fatalf("could not create http client: %v\n", err)
 	}
 
-	dc := domainCollector{dc: &domainClient{c: c}}
+	dc := domainClient{c: c}
 	reg.MustRegister(
 		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
 		prometheus.NewGoCollector(),
-		dc,
 	)
 
 	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	http.HandleFunc("/listings", dc.domainHandler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		err := index.Execute(w, nil)
@@ -61,15 +59,6 @@ func main() {
 	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal(err)
 	}
-}
-
-type domainCollector struct {
-	dc *domainClient
-}
-
-func (kc domainCollector) Describe(ch chan<- *prometheus.Desc) {
-	// Don't describe at startup, the API calls are too expensive.
-	// prometheus.DescribeByCollect(kc, ch)
 }
 
 type domainClient struct {
@@ -87,7 +76,7 @@ func (dc domainClient) SearchResidentialPage(rsr ResidentialSearchRequest) ([]Se
 	}
 	req.Header.Add("X-Api-Key", *apiKey)
 	req.Header.Add("accept", "application/json")
-	log.Printf("making request for page #%v: %v", rsr.PageNumber, req.URL)
+	log.Printf("making request for page #%v: %v, %+v", rsr.PageNumber, req.URL, rsr)
 	resp, err := dc.c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request to %v failed: %v", req.URL.String(), err)
@@ -116,7 +105,9 @@ func (dc domainClient) SearchResidential(rsr ResidentialSearchRequest) ([]Search
 	rsr.PageSize = 200
 	rsr.PageNumber = 0
 	listings := []SearchResult{}
-	for {
+
+	// Domain returns an error: "Cannot page beyond 1000 records" if you try to.
+	for len(listings) < 1000 {
 		listingsPage, err := dc.SearchResidentialPage(rsr)
 		if err != nil {
 			return nil, err
@@ -130,51 +121,51 @@ func (dc domainClient) SearchResidential(rsr ResidentialSearchRequest) ([]Search
 	return listings, nil
 }
 
-func (kc domainCollector) Collect(ch chan<- prometheus.Metric) {
-	matches, err := filepath.Glob("searches/*.json")
-	if err != nil {
-		log.Printf("failed to glob for json: %v\n", err)
-		// No way to effectively return errors from Collect.
-		return
-	}
-
+func (dc domainClient) domainHandler(w http.ResponseWriter, r *http.Request) {
+	reg := prometheus.NewPedanticRegistry()
 	listingCount := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "domain_listing_count",
 		},
 		[]string{"propertytype", "suburb", "postcode", "bedrooms", "bathrooms", "carspaces"},
 	)
-
-	for _, m := range matches {
-		f, err := os.Open(m)
-		if err != nil {
-			log.Printf("couldn't open search json: %v\n", err)
-			// No need to quit, just try the next one
-			continue
-		}
-		var rsr ResidentialSearchRequest
-		json.NewDecoder(f).Decode(&rsr)
-
-		listings, err := kc.dc.SearchResidential(rsr)
-		if err != nil {
-			log.Printf("error searching domain for %+v: %v\n", rsr, err)
-			// No need to quit, just try the next one.
-			continue
-		}
-
-		for _, l := range listings {
-			listingCount.WithLabelValues(
-				l.Listing.PropertyDetails.PropertyType,
-				l.Listing.PropertyDetails.Suburb,
-				l.Listing.PropertyDetails.Postcode,
-				fmt.Sprintf("%.1f", l.Listing.PropertyDetails.Bedrooms),
-				fmt.Sprintf("%.1f", l.Listing.PropertyDetails.Bathrooms),
-				fmt.Sprintf("%v", l.Listing.PropertyDetails.CarSpaces),
-			).Inc()
-		}
+	reg.MustRegister(listingCount)
+	rsr := ResidentialSearchRequest{
+		ListingType:  "Rent",
+		MinBathrooms: 0,
+		MinBedrooms:  0,
+		MinCarspaces: 0,
+		Locations: []LocationFilter{
+			{
+				State:                     r.URL.Query().Get("state"),
+				Area:                      "",
+				Region:                    "",
+				Suburb:                    r.URL.Query().Get("suburb"),
+				PostCode:                  r.URL.Query().Get("postCode"),
+				IncludeSurroundingSuburbs: false,
+			},
+		},
+	}
+	listings, err := dc.SearchResidential(rsr)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "error searching domain: %v", err)
+		log.Printf("error searching domain for %+v: %v\n", rsr, err)
+		return
+	}
+	for _, l := range listings {
+		listingCount.WithLabelValues(
+			l.Listing.PropertyDetails.PropertyType,
+			l.Listing.PropertyDetails.Suburb,
+			l.Listing.PropertyDetails.Postcode,
+			fmt.Sprintf("%.1f", l.Listing.PropertyDetails.Bedrooms),
+			fmt.Sprintf("%.1f", l.Listing.PropertyDetails.Bathrooms),
+			fmt.Sprintf("%v", l.Listing.PropertyDetails.CarSpaces),
+		).Inc()
 	}
 
-	listingCount.Collect(ch)
+	h := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+	h.ServeHTTP(w, r)
 }
 
 type LocationFilter struct {
