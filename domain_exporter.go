@@ -14,6 +14,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	phttp "github.com/travelaudience/go-promhttp"
 )
 
 var (
@@ -33,7 +34,15 @@ func main() {
 	}
 	log.Printf("Exporter starting on addr %s", *addr)
 	reg := prometheus.NewPedanticRegistry()
-	c := &http.Client{}
+	phttpClient := &phttp.Client{
+		Client:     http.DefaultClient,
+		Registerer: reg,
+	}
+	c, err := phttpClient.ForRecipient("domain")
+	if err != nil {
+		log.Fatalf("could not create http client: %v\n", err)
+	}
+
 	dc := domainCollector{dc: &domainClient{c: c}}
 	reg.MustRegister(
 		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
