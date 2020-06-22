@@ -1,0 +1,16 @@
+{
+  "listingType":"Rent",
+  "minBedrooms":0,
+  "minBathrooms":0,
+  "minCarspaces":0,
+  "locations":[
+    {
+      "state":"NSW",
+      "region":"",
+      "area":"",
+      "suburb":"PYRMONT",
+      "postCode":"",
+      "includeSurroundingSuburbs":false
+    }
+  ]
+}
