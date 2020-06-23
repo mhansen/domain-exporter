@@ -34,11 +34,33 @@ Example Prometheus config for querying:
 ```yaml
 scrape_configs:
   - job_name: 'domain_exporter'
-    # Only 500 requests per day allowed, so don't query too often!
-    scrape_interval: 1h
     static_configs:
       - targets:
-        - 'localhost:10550'
+        - 'domain_exporter:10550'
+  - job_name: 'domain_exporter_listings'
+    # Only 500 requests per day allowed, so don't query too often!
+    scrape_interval: 2h
+    metrics_path: "/listings"
+    params:
+      state: ["NSW"]
+    # https://github.com/prometheus/prometheus/issues/4885#issuecomment-515144405
+    static_configs:
+      - targets:
+        - Alexandria
+        - Pyrmont
+        - Glebe
+        - Redfern
+        - Newtown
+        - Surry Hills
+        - Ultimo
+        - Waterloo
+    relabel_configs:
+      # Convert the 'targets' list given above to a ?suburb=Pyrmont URL param
+      - source_labels: [__address__]
+        target_label: __param_suburb
+      # Send requests to the real hostname:port
+      - target_label: __address__
+        replacement: domain_exporter:10550
 ```
 
 ## Caveats
