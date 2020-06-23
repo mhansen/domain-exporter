@@ -19,7 +19,7 @@ $ go build .
 $ ./domain_exporter --api_key=<domain api key>
 ```
 
-Then navigate to http://localhost:10550/
+Then navigate to http://localhost:10550/listings?suburb=Pyrmont
 
 ## Building with docker
 
