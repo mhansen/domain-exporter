@@ -73,10 +73,7 @@ func (dc domainCollector) domainHandler(w http.ResponseWriter, r *http.Request) 
 	)
 	reg.MustRegister(listingCount)
 	rsr := domain.ResidentialSearchRequest{
-		ListingType:  "Rent",
-		MinBathrooms: 0,
-		MinBedrooms:  0,
-		MinCarspaces: 0,
+		ListingType: "Rent",
 		Locations: []domain.LocationFilter{
 			{
 				State:                     r.URL.Query().Get("state"),
