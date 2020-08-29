@@ -325,6 +325,8 @@ github.com/mhansen/domain v0.0.0-20200824112302-2529c9791ab8 h1:wWHZMesyVO9LbkSu
 github.com/mhansen/domain v0.0.0-20200824112302-2529c9791ab8/go.mod h1:s/bxvOf3vuQgHwJImCCrz+aLM4xIiaBM/R4BQQXn758=
 github.com/mhansen/domain v0.0.0-20200826100121-8abf824320c0 h1:/WyK4bvKp9NiGT5x9hD1NKKrygm36ZggZYsaX/x1mL8=
 github.com/mhansen/domain v0.0.0-20200826100121-8abf824320c0/go.mod h1:gT/f5XAV5Hqv9eesXE0ZutIY9fSv4DCW086lhwuN5mY=
+github.com/mhansen/domain v0.0.0-20200826100411-cc03ca66f413 h1:5Rk4aOKLtHAdP7Ev6Bdf/R+hnVoEZ/wDDigmoXhQOsk=
+github.com/mhansen/domain v0.0.0-20200826100411-cc03ca66f413/go.mod h1:gT/f5XAV5Hqv9eesXE0ZutIY9fSv4DCW086lhwuN5mY=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
 github.com/mitchellh/go-homedir v1.0.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
@@ -603,6 +605,8 @@ golang.org/x/sys v0.0.0-20200821140526-fda516888d29 h1:mNuhGagCf3lDDm5C0376C/sxh
 golang.org/x/sys v0.0.0-20200821140526-fda516888d29/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8 h1:AvbQYmiaaaza3cW3QXRyPo5kYgpFIzOAfeAAN7m3qQ4=
 golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200828194041-157a740278f4 h1:kCCpuwSAoYJPkNc6x0xT9yTtV4oKtARo4RGBQWOfg9E=
+golang.org/x/sys v0.0.0-20200828194041-157a740278f4/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
